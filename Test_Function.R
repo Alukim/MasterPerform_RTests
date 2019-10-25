@@ -72,29 +72,48 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
   distinctions.center <- 0
   
   upper.high <- month.arima.forecast$upper[,2]
-  lower.high <- month.arima.forecast$lower[,2]
+  lower.high <- month.arima.forecast$upper[,1]
   
-  upper.low <- month.arima.forecast$upper[,1]
+  upper.low <- month.arima.forecast$lower[,2]
   lower.low <- month.arima.forecast$lower[,1]
   
   for(i in 1:168) {
     machines.high[i] <- getMachineCount(upper.high[i])
-    distinctions.high[i] <- upper.high[i] - lower.high[i]
+    distinctions.high[i] <- upper.high[i] - upper.low[i]
     
-    machines.low[i] <- getMachineCount(upper.low[i])
-    distinctions.low[i] <- upper.low[i] - lower.low[i]
+    machines.low[i] <- getMachineCount(lower.high[i])
+    distinctions.low[i] <- lower.high[i] - lower.low[i]
+    
+    machines.center[i] <- getMachineCount(month.arima.forecast$mean[i])
   }
   
-  machines.sum <- sum(machines$high)
-  if(machines.sum * moneyForOneMachineForHour > restOfMoney) {
-    
+  machines.predictions <- 0
+  distinctions.predictions <- 0
+  restCost <- restOfMoney
+  
+  machines.sum.high <- sum(machines.high)
+  cat("\n 95%: ", machines.sum.high * moneyForOneMachineForHour)
+  if(machines.sum.high * moneyForOneMachineForHour > restOfMoney) {
+    machines.sum.low <- sum(machines.low)
+    cat("\n 80%: ", machines.sum.low * moneyForOneMachineForHour)
+    if(machines.sum.low * moneyForOneMachineForHour > restOfMoney) {
+      machines.sum.center <- sum(machines.center)
+      cat("\n Mean: ", machines.sum.center * moneyForOneMachineForHour)
+      restCost <- restOfMoney - machines.sum.center
+      machines.predictions <- machines.center
+    } else {
+      restCost <- restOfMoney - machines.sum.low
+      machines.predictions <- machines.low
+    }
+  }
+  else {
+    restCost <- restOfMoney - machines.sum.high
+    machines.predictions <- machines.high
   }
   
   restMachines
-  
-  distinctions.max <- max(distinctions)
-  
-  cat(machines)
+  if()
+
 }
 
 forecastWithArima <- function(learn, test) {
