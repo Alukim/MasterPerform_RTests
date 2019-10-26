@@ -23,12 +23,11 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
   plot(x = testWeek[,1], y = testWeek[,2], type = "l", col = "red", xlab = "Hour in week", ylab = "Number of requests", main = "Number of requests in hour - Test week")
   
   par(mfrow=c(1,1))
-  month = c(firstWeek[,2], secondWeek[,2], thirdWeek[,2], fourthWeek[,2]);
+  month = c(firstWeek[,2], secondWeek[,2], thirdWeek[,2], fourthWeek[,2], testWeek[,2]);
   plot(month, type = "l", col = "red", main = "Number of requests per seconds in month", xlab = 'Hour in month', ylab = 'Number of requests')
   
-  month.machine = c(firstWeek[,3], secondWeek[,3], thirdWeek[,3], fourthWeek[,3]);
+  month.machine = c(firstWeek[,3], secondWeek[,3], thirdWeek[,3], fourthWeek[,3], testWeek[,3]);
   plot(month.machine, type = "l", col = "red", main = "Count of active machine per hours in month", xlab = "Hour in month", ylab = "Count of active machines")
-  cat("\n Number of machines in first week: ", sum(firstWeek[,3]))
   
   month.ts <- ts(month, frequency=24*7)
   month.machine.ts <- ts(month.machine, frequency=24*7)
@@ -38,7 +37,7 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
   cat("\n")
   
   acf(month.ts, main = "ACF for Month - Number of requests per hours")
-  acf(month.ts, main = "ACF for Month - Number of machine per hours")
+  acf(month.machine.ts, main = "ACF for Month - Number of machine per hours")
   
   month.decompose <- decompose(month.ts)
   month.machine.decompose <- decompose(month.machine.ts)
@@ -49,12 +48,10 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
   plot(month.machine.decompose)
   title("Month - machines - decomposition")
   
-  month.ts.learn <- window(month.ts, end = c(3, 168))
-  month.ts.test <- window(month.ts, start = c(4, 1))
- 
-  plot(month.ts.test)
-  
   print("TEST")
+  
+  month.ts.learn <- window(month.ts, end = c(4,168))
+  month.ts.test <- window(month.ts, start = c(5,1))
   
   month.arima <- auto.arima(month.ts.learn)
   month.arima.forecast <- forecast(month.arima, h = length(month.ts.test))
@@ -87,11 +84,11 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
     machines.center[i] <- getMachineCount(month.arima.forecast$mean[i])
   }
   
-  machines.predictions <- 0
-  distinctions.predictions <- 0
-  restCost <- restOfMoney
+  machines.predictions <- machines.high
+  distinctions.predictions <- distinctions.high
   
   machines.sum.high <- sum(machines.high)
+  restCost <- restOfMoney - (machines.sum.high * moneyForOneMachineForHour)
   cat("\n 95%: ", machines.sum.high * moneyForOneMachineForHour)
   if(machines.sum.high * moneyForOneMachineForHour > restOfMoney) {
     machines.sum.low <- sum(machines.low)
@@ -99,20 +96,43 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
     if(machines.sum.low * moneyForOneMachineForHour > restOfMoney) {
       machines.sum.center <- sum(machines.center)
       cat("\n Mean: ", machines.sum.center * moneyForOneMachineForHour)
-      restCost <- restOfMoney - machines.sum.center
+      restCost <- restOfMoney - (machines.sum.center * moneyForOneMachineForHour)
       machines.predictions <- machines.center
     } else {
-      restCost <- restOfMoney - machines.sum.low
+      restCost <- restOfMoney - (machines.sum.low * moneyForOneMachineForHour)
       machines.predictions <- machines.low
+      distinctions.predictions <- distinctions.low
     }
   }
-  else {
-    restCost <- restOfMoney - machines.sum.high
-    machines.predictions <- machines.high
-  }
   
-  restMachines
-  if()
+  if(restCost > moneyForOneMachineForHour) {
+    restMachinesCount <- restCost * moneyForOneMachineForHour
+    sortedDistincions <- sort(distinctions.predictions, index.return=TRUE, decreasing=TRUE)
+    threshold <- max(distinctions.predictions) * 0.7
+    filterDistincionsLenght <- length(Filter(function(i) {i > threshold}, sortedDistincions$x))
+    
+    if(restMachinesCount <= filterDistincionsLenght) {
+      for(i in 1:restMachinesCount) {
+        index <- sortedDistincions$ix[i]
+        machines.predictions[index] <- machines.predictions[index] + 1
+      }
+    }
+    else {
+      division <- filterDistincionsLenght%/%restMachinesCount
+      
+      for(i in 1:filterDistincionsLenght) {
+        index <- sortedDistincions$ix[i]
+        machines.predictions[index] <- machines.predictions[index] + division
+      }
+      
+      restMachinesToDistribute <- restMachinesCount - (division * filterDistincionsLenght)
+      
+      for(i in 1:restMachinesToDistribute) {
+        index <- sortedDistincions$ix[i]
+        machines.predictions[index] <- machines.predictions[index] + 1
+      }
+    }
+  }
 
 }
 
