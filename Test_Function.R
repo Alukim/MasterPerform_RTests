@@ -1,6 +1,219 @@
 test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) {
   library(forecast)
   
+  data = loadData(path)
+
+  month.ts <- ts(data$month, frequency=24*7)
+  month.machine.ts <- ts(data$machine, frequency=24*7)
+  
+  cat("\n Money to spend for week: ", moneyToSpendForWeek)
+  cat("\n Cost of one hour of active machine: ", moneyForOneMachineForHour)
+  cat("\n")
+  
+  acf(month.ts, main = "ACF for Month - Number of requests per hours")
+  acf(month.machine.ts, main = "ACF for Month - Number of machine per hours")
+  
+  month.decompose <- decompose(month.ts)
+  month.machine.decompose <- decompose(month.machine.ts)
+  
+  plot(month.decompose)
+  
+  plot(month.machine.decompose)
+  
+  month.ts.learn <- window(month.ts, end = c(4,168))
+  month.ts.test <- window(month.ts, start = c(5,1))
+  
+  first <- TRUE
+  test.prediction.values <- 0
+  test.prediction.machines <- 0
+  test.prediction.machines.before <- 0
+  test.prediction.costForHour <- 0
+  test.prediction.restCostInHour <- 0
+  
+  plotsPath = paste(path, "\\data\\", sep = "")
+  dir.create(plotsPath);
+  
+  for(i in 1:168) {
+    cat("\nIteration: ", i)
+    
+    if(first == TRUE) {
+      month.ts.learn <- window(month.ts, end = c(4,168))
+      month.ts.test <- window(month.ts, start = c(5,1))
+      first <- FALSE
+    } else {
+      month.ts.learn <- window(month.ts, end = c(5,(i-1)))
+      month.ts.test <- window(month.ts, start = c(5,i))
+    }
+    
+    month.arima <- auto.arima(month.ts.learn)
+    month.arima.forecast <- forecast(month.arima, h = length(month.ts.test))
+    
+    plotsPathEnumeration = paste(plotsPath, i, sep = "")
+    dir.create(plotsPathEnumeration);
+    
+    forecastPath = paste(plotsPathEnumeration, "\\forecast.png", sep = "")
+    png(filename = forecastPath, width = 1200, height = 500)
+    
+    par(mfrow=c(1,1))
+    plot(month.arima.forecast, ylab = "Number of request per hours.", xlab = "Numer of weeks")
+    lines(month.ts.test, col = "red")
+    dev.off()
+    
+    prediction.high <- 0
+    machines.high <- 0
+    distinctions.high <- 0
+    
+    prediction.low <- 0
+    machines.low <- 0
+    distinctions.low <- 0
+    
+    machines.center <- 0
+    
+    upper.high <- month.arima.forecast$upper[,2]
+    lower.high <- month.arima.forecast$upper[,1]
+    
+    upper.low <- month.arima.forecast$lower[,2]
+    lower.low <- month.arima.forecast$lower[,1]
+    
+    for(j in 1:length(month.ts.test)) {
+      prediction.high[j] <- upper.high[j]
+      machines.high[j] <- getMachineCount(upper.high[j])
+      distinctions.high[j] <- upper.high[j] - upper.low[j]
+      
+      prediction.low[j] <- lower.high[j]
+      machines.low[j] <- getMachineCount(lower.high[j])
+      distinctions.low[j] <- lower.high[j] - lower.low[j]
+      
+      machines.center[j] <- getMachineCount(month.arima.forecast$mean[j])
+    }
+    
+    machines.predictions <- machines.high
+    distinctions.predictions <- distinctions.high
+    value.prediction <- prediction.high
+    
+    machines.sum.high <- sum(machines.high)
+    restCost <- moneyToSpendForWeek - (machines.sum.high * moneyForOneMachineForHour)
+    cat(" ,95%: ", machines.sum.high * moneyForOneMachineForHour)
+    if(machines.sum.high * moneyForOneMachineForHour > moneyToSpendForWeek) {
+      machines.sum.low <- sum(machines.low)
+      cat("\n 80%: ", machines.sum.low * moneyForOneMachineForHour)
+      if(machines.sum.low * moneyForOneMachineForHour > moneyToSpendForWeek) {
+        machines.sum.center <- sum(machines.center)
+        cat("\n Mean: ", machines.sum.center * moneyForOneMachineForHour)
+        restCost <- moneyToSpendForWeek - (machines.sum.center * moneyForOneMachineForHour)
+        machines.predictions <- machines.center
+        value.prediction <- month.arima.forecast$mean
+      } else {
+        restCost <- moneyToSpendForWeek - (machines.sum.low * moneyForOneMachineForHour)
+        machines.predictions <- machines.low
+        distinctions.predictions <- distinctions.low
+        value.prediction <- prediction.low
+      }
+    }
+    
+    machines.predictions.before <- machines.predictions
+    
+    if(restCost > moneyForOneMachineForHour) {
+      restMachinesCount <- restCost %/% moneyForOneMachineForHour
+      sortedDistincions <- sort(distinctions.predictions, index.return=TRUE, decreasing=TRUE)
+      sortedDistincions.length <- length(sortedDistincions$x)
+      threshold <- max(distinctions.predictions) * 0.6
+      division <- restMachinesCount%/%sortedDistincions.length
+      additionalMachine = 1
+      restMachinesToDistribute <- restMachinesCount
+      
+      if(division > 2) {
+        additionalMachine = division %/% 2
+      }
+      
+      if(division >= 1) {
+        for(f in 1:sortedDistincions.length) {
+          machines.predictions[f] <- machines.predictions[f] + additionalMachine 
+        }
+        
+        restMachinesToDistribute <- restMachinesCount - (additionalMachine * sortedDistincions.length)
+      }
+      
+      filterDistincionsLenght <- length(Filter(function(z) {z > threshold}, sortedDistincions$x))
+      division <- restMachinesToDistribute%/%filterDistincionsLenght
+      
+      if(division >= 1) {
+        for(g in 1:filterDistincionsLenght) {
+          index <- sortedDistincions$ix[g]
+          machines.predictions[index] <- machines.predictions[index] + division
+        }
+      }
+      
+      restMachinesToDistribute <- restMachinesToDistribute - (division * filterDistincionsLenght)
+      
+      if(restMachinesToDistribute > 0) {
+        for(r in 1:restMachinesToDistribute) {
+          index <- sortedDistincions$ix[r]
+          machines.predictions[index] <- machines.predictions[index] + 1
+        }
+      }
+    }
+    
+    moneyForMachineForThisHour <- machines.predictions[1] * moneyForOneMachineForHour
+    moneyToSpendForWeek = moneyToSpendForWeek - moneyForMachineForThisHour
+    
+    ylimMax <- max(machines.predictions)
+    machinesPath = paste(plotsPathEnumeration, "\\machines.png", sep = "")
+    png(filename = machinesPath, width = 1200, height = 500)
+    
+    par(mfrow=c(1,1))
+    plot(machines.predictions, col = "red", xlab = "Hour in week", ylab = "Number of machines", main = "Number of machines per hours", type = "l", ylim = c(0, ylimMax))
+    lines(machines.predictions.before)
+    dev.off()
+    
+    test.prediction.values[i] <- value.prediction[1]
+    test.prediction.machines[i] <- machines.predictions[1]
+    test.prediction.machines.before[i] <- machines.predictions.before[1]
+    test.prediction.costForHour[i] <- moneyForMachineForThisHour
+    test.prediction.restCostInHour[i] <- moneyToSpendForWeek
+  }
+  
+  requeusts = paste(plotsPath, "\\requests.png", sep = "")
+  png(filename = requeusts, width = 1200, height = 500)
+  par(mfrow=(c(1,1)))
+  plot(test.prediction.values, col = "red", xlab = "Hour in week", ylab = "Number of requests", main = "Number of request per hours", type = "l")
+  lines(data$testWeek[,2])
+  dev.off()
+  
+  machinesPerHours = paste(plotsPath, "\\machines.png", sep = "")
+  png(filename = machinesPerHours, width = 1200, height = 500)
+  ylimMax <- max(test.prediction.machines) + 2
+  plot(test.prediction.machines, col = "red", xlab = "Hour in week", ylab = "Number of machines", main = "Number of machines per hours", type = "l", ylim = c(0, ylimMax))
+  lines(test.prediction.machines.before)
+  dev.off()
+  
+  costs = paste(plotsPath, "\\costPerHour.png", sep = "")
+  png(filename = costs, width = 1200, height = 500)
+  plot(test.prediction.costForHour, xlab = "Hour in week", ylab = "Cost", main = "Cost of active machines in hour", type = "l")
+  dev.off()
+  
+  restCost = paste(plotsPath, "\\restConstPerHour.png", sep = "")
+  png(filename = restCost, width = 1200, height = 500)
+  plot(test.prediction.restCostInHour, xlab = "Hour in week", ylab = "Cost", main = "Cost of active machines in hour", type = "l")
+  dev.off()
+  
+  predictedValues = paste(plotsPath, "\\predictedValues.csv", sep = "")
+  write.csv(x = test.prediction.values, file = predictedValues)
+  
+  predictedMachines = paste(plotsPath, "\\predictedMachines.csv", sep = "")
+  write.csv(x = test.prediction.machines.before, file = predictedMachines)
+  
+  predicatedMachinesWithAdditionals = paste(plotsPath, "\\predictedWithAdditionals.csv", sep = "")
+  write.csv(x = test.prediction.machines, file = predicatedMachinesWithAdditionals)
+  
+  predictedCost = paste(plotsPath, "\\predictedCost.csv", sep = "")
+  write.csv(x = test.prediction.costForHour, file = predictedCost)
+  
+  predictedRestCostInHour = paste(plotsPath, "\\predictedRestCostInHour.csv", sep = "")
+  write.csv(x = test.prediction.restCostInHour, file = predictedRestCostInHour)
+}
+
+loadData <- function(path) {
   firstWeekPath = paste(path, "/first.csv", sep = "")
   secondWeekPath = paste(path, "/second.csv", sep = "")
   thirdWeekPath = paste(path, "/third.csv", sep = "")
@@ -11,9 +224,8 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
   thirdWeek = read.csv(thirdWeekPath, header = TRUE, sep = ";")
   fourthWeek = read.csv(fourthWeekPath, header = TRUE, sep = ";")
   testWeek = read.csv(testWeekPath, header = TRUE, sep = ";")
-  restOfMoney <- moneyToSpendForWeek
   
-  par(mfrow=c(3,2))
+  par(mfrow=c(2,2))
   plot(x = firstWeek[,1], y = firstWeek[,2], type = "l", col = "red", xlab = "Hour in week", ylab = "Number of requests", main = "Number of requests in hour - First week")
   plot(x = secondWeek[,1], y = secondWeek[,2], type = "l", col = "red", xlab = "Hour in week", ylab = "Number of requests", main = "Number of requests in hour - Second week")
   plot(x = thirdWeek[,1], y = thirdWeek[,2], type = "l", col = "red", xlab = "Hour in week", ylab = "Number of requests", main = "Number of requests in hour - Third week")
@@ -22,126 +234,14 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
   par(mfrow=c(1,1))
   plot(x = testWeek[,1], y = testWeek[,2], type = "l", col = "red", xlab = "Hour in week", ylab = "Number of requests", main = "Number of requests in hour - Test week")
   
-  par(mfrow=c(1,1))
+  par(mfrow=c(2,1))
   month = c(firstWeek[,2], secondWeek[,2], thirdWeek[,2], fourthWeek[,2], testWeek[,2]);
   plot(month, type = "l", col = "red", main = "Number of requests per seconds in month", xlab = 'Hour in month', ylab = 'Number of requests')
   
   month.machine = c(firstWeek[,3], secondWeek[,3], thirdWeek[,3], fourthWeek[,3], testWeek[,3]);
   plot(month.machine, type = "l", col = "red", main = "Count of active machine per hours in month", xlab = "Hour in month", ylab = "Count of active machines")
-  
-  month.ts <- ts(month, frequency=24*7)
-  month.machine.ts <- ts(month.machine, frequency=24*7)
-  
-  cat("\n Money to spend for week: ", moneyToSpendForWeek)
-  cat("\n Cost of one hour active machine: ", moneyForOneMachineForHour)
-  cat("\n")
-  
-  acf(month.ts, main = "ACF for Month - Number of requests per hours")
-  acf(month.machine.ts, main = "ACF for Month - Number of machine per hours")
-  
-  month.decompose <- decompose(month.ts)
-  month.machine.decompose <- decompose(month.machine.ts)
-  
-  plot(month.decompose)
-  title("Month - decomposition")
-  
-  plot(month.machine.decompose)
-  title("Month - machines - decomposition")
-  
-  print("TEST")
-  
-  month.ts.learn <- window(month.ts, end = c(4,168))
-  month.ts.test <- window(month.ts, start = c(5,1))
-  
-  month.arima <- auto.arima(month.ts.learn)
-  month.arima.forecast <- forecast(month.arima, h = length(month.ts.test))
-  
-  plot(month.arima.forecast, ylab = "Number of request per hours.")
-  lines(month.ts.test, col = "red")
-  
-  machines.high <- 0
-  distinctions.high <- 0
-  
-  machines.low <- 0
-  distinctions.low <- 0
-  
-  machines.center <- 0
-  distinctions.center <- 0
-  
-  upper.high <- month.arima.forecast$upper[,2]
-  lower.high <- month.arima.forecast$upper[,1]
-  
-  upper.low <- month.arima.forecast$lower[,2]
-  lower.low <- month.arima.forecast$lower[,1]
-  
-  for(i in 1:168) {
-    machines.high[i] <- getMachineCount(upper.high[i])
-    distinctions.high[i] <- upper.high[i] - upper.low[i]
-    
-    machines.low[i] <- getMachineCount(lower.high[i])
-    distinctions.low[i] <- lower.high[i] - lower.low[i]
-    
-    machines.center[i] <- getMachineCount(month.arima.forecast$mean[i])
-  }
-  
-  machines.predictions <- machines.high
-  distinctions.predictions <- distinctions.high
-  
-  machines.sum.high <- sum(machines.high)
-  restCost <- restOfMoney - (machines.sum.high * moneyForOneMachineForHour)
-  cat("\n 95%: ", machines.sum.high * moneyForOneMachineForHour)
-  if(machines.sum.high * moneyForOneMachineForHour > restOfMoney) {
-    machines.sum.low <- sum(machines.low)
-    cat("\n 80%: ", machines.sum.low * moneyForOneMachineForHour)
-    if(machines.sum.low * moneyForOneMachineForHour > restOfMoney) {
-      machines.sum.center <- sum(machines.center)
-      cat("\n Mean: ", machines.sum.center * moneyForOneMachineForHour)
-      restCost <- restOfMoney - (machines.sum.center * moneyForOneMachineForHour)
-      machines.predictions <- machines.center
-    } else {
-      restCost <- restOfMoney - (machines.sum.low * moneyForOneMachineForHour)
-      machines.predictions <- machines.low
-      distinctions.predictions <- distinctions.low
-    }
-  }
-  
-  if(restCost > moneyForOneMachineForHour) {
-    restMachinesCount <- restCost * moneyForOneMachineForHour
-    sortedDistincions <- sort(distinctions.predictions, index.return=TRUE, decreasing=TRUE)
-    threshold <- max(distinctions.predictions) * 0.7
-    filterDistincionsLenght <- length(Filter(function(i) {i > threshold}, sortedDistincions$x))
-    
-    if(restMachinesCount <= filterDistincionsLenght) {
-      for(i in 1:restMachinesCount) {
-        index <- sortedDistincions$ix[i]
-        machines.predictions[index] <- machines.predictions[index] + 1
-      }
-    }
-    else {
-      division <- filterDistincionsLenght%/%restMachinesCount
-      
-      for(i in 1:filterDistincionsLenght) {
-        index <- sortedDistincions$ix[i]
-        machines.predictions[index] <- machines.predictions[index] + division
-      }
-      
-      restMachinesToDistribute <- restMachinesCount - (division * filterDistincionsLenght)
-      
-      for(i in 1:restMachinesToDistribute) {
-        index <- sortedDistincions$ix[i]
-        machines.predictions[index] <- machines.predictions[index] + 1
-      }
-    }
-  }
 
-}
-
-forecastWithArima <- function(learn, test) {
-  
-}
-
-forecastWithEts <- function(learn, test) {
-  
+  return(list(month = month, machine = month.machine, test = testWeek))
 }
 
 getMachineCount <- function(value) {
