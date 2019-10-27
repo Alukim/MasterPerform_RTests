@@ -113,7 +113,7 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
     
     machines.predictions.before <- machines.predictions
     
-    if(restCost > moneyForOneMachineForHour) {
+    if(restCost >= moneyForOneMachineForHour) {
       restMachinesCount <- restCost %/% moneyForOneMachineForHour
       sortedDistincions <- sort(distinctions.predictions, index.return=TRUE, decreasing=TRUE)
       sortedDistincions.length <- length(sortedDistincions$x)
