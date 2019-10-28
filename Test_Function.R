@@ -1,4 +1,4 @@
-test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) {
+test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour, pathToSave) {
   library(forecast)
   
   data = loadData(path)
@@ -30,8 +30,7 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
   test.prediction.costForHour <- 0
   test.prediction.restCostInHour <- 0
   
-  plotsPath = paste(path, "\\data\\", sep = "")
-  dir.create(plotsPath);
+  dir.create(pathToSave);
   
   for(i in 1:168) {
     cat("\nIteration: ", i)
@@ -48,7 +47,7 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
     month.arima <- auto.arima(month.ts.learn)
     month.arima.forecast <- forecast(month.arima, h = length(month.ts.test))
     
-    plotsPathEnumeration = paste(plotsPath, i, sep = "")
+    plotsPathEnumeration = paste(pathToSave, i, sep = "")
     dir.create(plotsPathEnumeration);
     
     forecastPath = paste(plotsPathEnumeration, "\\forecast.png", sep = "")
@@ -173,43 +172,43 @@ test_algoritm <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) 
     test.prediction.restCostInHour[i] <- moneyToSpendForWeek
   }
   
-  requeusts = paste(plotsPath, "\\requests.png", sep = "")
+  requeusts = paste(pathToSave, "requests.png", sep = "")
   png(filename = requeusts, width = 1200, height = 500)
   par(mfrow=(c(1,1)))
   plot(test.prediction.values, col = "red", xlab = "Hour in week", ylab = "Number of requests", main = "Number of request per hours", type = "l")
   lines(data$testWeek[,2])
   dev.off()
   
-  machinesPerHours = paste(plotsPath, "\\machines.png", sep = "")
+  machinesPerHours = paste(pathToSave, "machines.png", sep = "")
   png(filename = machinesPerHours, width = 1200, height = 500)
   ylimMax <- max(test.prediction.machines) + 2
   plot(test.prediction.machines, col = "red", xlab = "Hour in week", ylab = "Number of machines", main = "Number of machines per hours", type = "l", ylim = c(0, ylimMax))
   lines(test.prediction.machines.before)
   dev.off()
   
-  costs = paste(plotsPath, "\\costPerHour.png", sep = "")
+  costs = paste(pathToSave, "costPerHour.png", sep = "")
   png(filename = costs, width = 1200, height = 500)
   plot(test.prediction.costForHour, xlab = "Hour in week", ylab = "Cost", main = "Cost of active machines in hour", type = "l")
   dev.off()
   
-  restCost = paste(plotsPath, "\\restConstPerHour.png", sep = "")
+  restCost = paste(pathToSave, "restConstPerHour.png", sep = "")
   png(filename = restCost, width = 1200, height = 500)
   plot(test.prediction.restCostInHour, xlab = "Hour in week", ylab = "Cost", main = "Cost of active machines in hour", type = "l")
   dev.off()
   
-  predictedValues = paste(plotsPath, "\\predictedValues.csv", sep = "")
+  predictedValues = paste(pathToSave, "predictedValues.csv", sep = "")
   write.csv(x = test.prediction.values, file = predictedValues)
   
-  predictedMachines = paste(plotsPath, "\\predictedMachines.csv", sep = "")
+  predictedMachines = paste(pathToSave, "predictedMachines.csv", sep = "")
   write.csv(x = test.prediction.machines.before, file = predictedMachines)
   
-  predicatedMachinesWithAdditionals = paste(plotsPath, "\\predictedWithAdditionals.csv", sep = "")
+  predicatedMachinesWithAdditionals = paste(pathToSave, "predictedWithAdditionals.csv", sep = "")
   write.csv(x = test.prediction.machines, file = predicatedMachinesWithAdditionals)
   
-  predictedCost = paste(plotsPath, "\\predictedCost.csv", sep = "")
+  predictedCost = paste(pathToSave, "predictedCost.csv", sep = "")
   write.csv(x = test.prediction.costForHour, file = predictedCost)
   
-  predictedRestCostInHour = paste(plotsPath, "\\predictedRestCostInHour.csv", sep = "")
+  predictedRestCostInHour = paste(pathToSave, "predictedRestCostInHour.csv", sep = "")
   write.csv(x = test.prediction.restCostInHour, file = predictedRestCostInHour)
 }
 
@@ -258,4 +257,25 @@ getMachineCount <- function(value) {
     return(4)
   
   return(5)
+}
+
+testThreeTimes <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) {
+  pathToSaveMain = paste(path, "data_", sep = "")
+  
+  pathToSaveMainCat = paste(path, moneyToSpendForWeek, sep = "")
+  dir.create(pathToSaveMainCat)
+  
+  pathToSaveMain = paste(pathToSaveMainCat, "\\data", sep = "")
+  
+  print("First test")
+  pathToSave1 = paste(pathToSaveMain, "1\\", sep = "")
+  test_algoritm(path, moneyToSpendForWeek ,moneyForOneMachineForHour, pathToSave1)
+  
+  print("Second test")
+  pathToSave2 = paste(pathToSaveMain, "2\\", sep = "")
+  test_algoritm(path, moneyToSpendForWeek ,moneyForOneMachineForHour, pathToSave2)
+  
+  print("Third test")
+  pathToSave3 = paste(pathToSaveMain, "3\\", sep = "")
+  test_algoritm(path, moneyToSpendForWeek ,moneyForOneMachineForHour, pathToSave3)
 }
