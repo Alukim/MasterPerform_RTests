@@ -262,7 +262,7 @@ getMachineCount <- function(value) {
 testThreeTimes <- function(path, moneyToSpendForWeek, moneyForOneMachineForHour) {
   pathToSaveMain = paste(path, "data_", sep = "")
   
-  pathToSaveMainCat = paste(path, moneyToSpendForWeek, sep = "")
+  pathToSaveMainCat = paste(pathToSaveMain, moneyToSpendForWeek, sep = "")
   dir.create(pathToSaveMainCat)
   
   pathToSaveMain = paste(pathToSaveMainCat, "\\data", sep = "")
