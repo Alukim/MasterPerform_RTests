@@ -10,16 +10,6 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   cat("\n Cost of one hour of active machine: ", moneyForOneMachineForHour)
   cat("\n")
   
-  acf(month.ts, main = "ACF for Month - Number of requests per hours")
-  acf(month.machine.ts, main = "ACF for Month - Number of machine per hours")
-  
-  month.decompose <- decompose(month.ts)
-  month.machine.decompose <- decompose(month.machine.ts)
-  
-  plot(month.decompose)
-  
-  plot(month.machine.decompose)
-  
   month.ts.learn <- window(month.ts, end = c(4,168))
   month.ts.test <- window(month.ts, start = c(5,1))
   
@@ -54,8 +44,10 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
     png(filename = forecastPath, width = 1200, height = 500)
     
     par(mfrow=c(1,1))
-    plot(month.arima.forecast, ylab = "Number of request per hours.", xlab = "Numer of weeks")
+    plot(month.arima.forecast, ylab = "Predykowana ilość zapytań na godzinę.", xlab = "Tydzień")
     lines(month.ts.test, col = "red")
+    legend("topleft", legend = c("Predykcja", "Wartość testowa"), cex=.8, col = c("black", "red"), pch=c(1,2))
+    
     dev.off()
     
     prediction.high <- 0
@@ -161,8 +153,9 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
     png(filename = machinesPath, width = 1200, height = 500)
     
     par(mfrow=c(1,1))
-    plot(machines.predictions, col = "red", xlab = "Hour in week", ylab = "Number of machines", main = "Number of machines per hours", type = "l", ylim = c(0, ylimMax))
-    lines(machines.predictions.before)
+    plot(machines.predictions, xlab = "Godzina w tygodniu", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
+    lines(machines.predictions.before, col = "red")
+    legend("topleft", legend = c("Ilość maszyn po rozłożeniu pozostałej kwoty", "Ilość maszyn przyznana po predykcji"), cex=.8, col = c("black", "red"), pch=c(1,2))
     dev.off()
     
     test.prediction.values[i] <- value.prediction[1]
@@ -175,25 +168,27 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   requeusts = paste(pathToSave, "requests.png", sep = "")
   png(filename = requeusts, width = 1200, height = 500)
   par(mfrow=(c(1,1)))
-  plot(test.prediction.values, col = "red", xlab = "Hour in week", ylab = "Number of requests", main = "Number of request per hours", type = "l")
-  lines(data$testWeek[,2])
+  plot(test.prediction.values, xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l")
+  lines(data$test[,1], col = "red",)
+  legend("topleft", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
   dev.off()
   
   machinesPerHours = paste(pathToSave, "machines.png", sep = "")
   png(filename = machinesPerHours, width = 1200, height = 500)
   ylimMax <- max(test.prediction.machines) + 2
-  plot(test.prediction.machines, col = "red", xlab = "Hour in week", ylab = "Number of machines", main = "Number of machines per hours", type = "l", ylim = c(0, ylimMax))
-  lines(test.prediction.machines.before)
+  plot(test.prediction.machines, xlab = "Godzina w tygodniu", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
+  lines(test.prediction.machines.before, col = "red")
+  legend("topleft", legend = c("Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn przyznana po predykcji"), cex=.8, col = c("black", "red"), pch=c(1,2))
   dev.off()
   
   costs = paste(pathToSave, "costPerHour.png", sep = "")
   png(filename = costs, width = 1200, height = 500)
-  plot(test.prediction.costForHour, xlab = "Hour in week", ylab = "Cost", main = "Cost of active machines in hour", type = "l")
+  plot(test.prediction.costForHour, xlab = "Godzina w tygodniu", ylab = "Koszt", main = "Koszt maszyny na godzinę", type = "l")
   dev.off()
   
   restCost = paste(pathToSave, "restConstPerHour.png", sep = "")
   png(filename = restCost, width = 1200, height = 500)
-  plot(test.prediction.restCostInHour, xlab = "Hour in week", ylab = "Cost", main = "Cost of active machines in hour", type = "l")
+  plot(test.prediction.restCostInHour, xlab = "Godzina w tygodniu", ylab = "Koszt", main = "Pozostała kwota do rozdysponowania na reszte okresu", type = "l")
   dev.off()
   
   predictedValues = paste(pathToSave, "predictedValues.csv", sep = "")
