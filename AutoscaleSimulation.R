@@ -44,15 +44,15 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
     png(filename = forecastPath, width = 1200, height = 500)
     
     par(mfrow=c(1,1))
-    plot(month.arima.forecast, ylab = "Predykowana ilość zapytań na godzinę.", xlab = "Tydzień")
+    plot(month.arima.forecast, ylab = "Liczba zapytań", xlab = "Tydzień", main = "Predykcja liczby zapytań na godzinę")
     lines(month.ts.test, col = "red")
     legend("bottom", legend = c("Predykcja", "Wartość testowa"), cex=.8, col = c("black", "red"), pch=c(1,2))
     
     dev.off()
     
     prediction.high <- 0
-    machines.high <- 0
-    distinctions.high <- 0
+    machines.high <- 00
+    distinctions.high <- 
     
     prediction.low <- 0
     machines.low <- 0
@@ -153,7 +153,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
     png(filename = machinesPath, width = 1200, height = 500)
     
     par(mfrow=c(1,1))
-    plot(machines.predictions, xlab = "Godzina w tygodniu", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
+    plot(machines.predictions, xlab = "Godzina", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
     lines(machines.predictions.before, col = "red")
     legend("bottom", legend = c("Ilość maszyn po rozłożeniu pozostałej kwoty", "Ilość maszyn przyznana po predykcji"), cex=.8, col = c("black", "red"), pch=c(1,2))
     dev.off()
@@ -168,7 +168,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   requeusts = paste(pathToSave, "requests.png", sep = "")
   png(filename = requeusts, width = 1200, height = 500)
   par(mfrow=(c(1,1)))
-  plot(test.prediction.values, xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l")
+  plot(test.prediction.values, xlab = "Godzina", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l")
   lines(data$testWeek[,2], col = "red",)
   legend("bottom", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
   dev.off()
@@ -176,7 +176,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   machinesPerHours = paste(pathToSave, "machines.png", sep = "")
   png(filename = machinesPerHours, width = 1200, height = 500)
   ylimMax <- max(test.prediction.machines) + 2
-  plot(test.prediction.machines, xlab = "Godzina w tygodniu", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
+  plot(test.prediction.machines, xlab = "Godzina", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
   lines(test.prediction.machines.before, col = "red")
   lines(data$testWeek[,3], col = "blue")
   legend("bottom", legend = c("Ilość maszyn przyznana po predykcji", "Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn dla okresu testowego"), cex=.8, col = c("black", "red", "blue"), pch=c(1,2))
@@ -184,12 +184,12 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   
   costs = paste(pathToSave, "costPerHour.png", sep = "")
   png(filename = costs, width = 1200, height = 500)
-  plot(test.prediction.costForHour, xlab = "Godzina w tygodniu", ylab = "Koszt", main = "Koszt maszyny na godzinę", type = "l")
+  plot(test.prediction.costForHour, xlab = "Godzina", ylab = "Koszt", main = "Koszt maszyny na godzinę", type = "l")
   dev.off()
   
   restCost = paste(pathToSave, "restConstPerHour.png", sep = "")
   png(filename = restCost, width = 1200, height = 500)
-  plot(test.prediction.restCostInHour, xlab = "Godzina w tygodniu", ylab = "Koszt", main = "Pozostała kwota do rozdysponowania na reszte okresu", type = "l")
+  plot(test.prediction.restCostInHour, xlab = "Godzina", ylab = "Koszt", main = "Pozostała kwota do rozdysponowania na reszte okresu", type = "l")
   dev.off()
   
   predictedValues = paste(pathToSave, "predictedValues.csv", sep = "")
@@ -221,19 +221,19 @@ loadData <- function(path) {
   testWeek = read.csv(testWeekPath, header = TRUE, sep = ";")
   
   par(mfrow=c(2,2))
-  plot(x = firstWeek[,1], y = firstWeek[,2], type = "l", xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
-  plot(x = secondWeek[,1], y = secondWeek[,2], type = "l", xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
-  plot(x = thirdWeek[,1], y = thirdWeek[,2], type = "l", xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
-  plot(x = fourthWeek[,1], y = fourthWeek[,2], type = "l", xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
+  plot(x = firstWeek[,1], y = firstWeek[,2], type = "l", xlab = "Godzina", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
+  plot(x = secondWeek[,1], y = secondWeek[,2], type = "l", xlab = "Godzina", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
+  plot(x = thirdWeek[,1], y = thirdWeek[,2], type = "l", xlab = "Godzina", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
+  plot(x = fourthWeek[,1], y = fourthWeek[,2], type = "l", xlab = "Godzina", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
   
   par(mfrow=c(1,1))
-  plot(x = testWeek[,1], y = testWeek[,2], type = "l", xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
+  plot(x = testWeek[,1], y = testWeek[,2], type = "l", xlab = "Godzina", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę")
   
   month = c(firstWeek[,2], secondWeek[,2], thirdWeek[,2], fourthWeek[,2], testWeek[,2]);
-  plot(month, type = "l", main = "Ilość zapytań na godzinę w przeciągu 4 tygodni", xlab = 'Godzina w tygodniach', ylab = 'Ilość zapytań')
+  plot(month, type = "l", main = "Ilość zapytań na godzinę w przeciągu 4 okresów", xlab = 'Godzina', ylab = 'Ilość zapytań')
   
   month.machine = c(firstWeek[,3], secondWeek[,3], thirdWeek[,3], fourthWeek[,3], testWeek[,3]);
-  plot(month.machine, type = "l", main = "Ilość maszyn na godzinę w przeciągu 4 ", xlab = "Godzina w tygodniu", ylab = "Ilość maszyn")
+  plot(month.machine, type = "l", main = "Ilość maszyn na godzinę w przeciągu 4 ", xlab = "Godzina", ylab = "Ilość maszyn")
 
   return(list(month = month, machine = month.machine, test = testWeek))
 }
