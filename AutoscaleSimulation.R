@@ -46,7 +46,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
     par(mfrow=c(1,1))
     plot(month.arima.forecast, ylab = "Predykowana ilość zapytań na godzinę.", xlab = "Tydzień")
     lines(month.ts.test, col = "red")
-    legend("topleft", legend = c("Predykcja", "Wartość testowa"), cex=.8, col = c("black", "red"), pch=c(1,2))
+    legend("bottom", legend = c("Predykcja", "Wartość testowa"), cex=.8, col = c("black", "red"), pch=c(1,2))
     
     dev.off()
     
@@ -155,7 +155,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
     par(mfrow=c(1,1))
     plot(machines.predictions, xlab = "Godzina w tygodniu", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
     lines(machines.predictions.before, col = "red")
-    legend("topleft", legend = c("Ilość maszyn po rozłożeniu pozostałej kwoty", "Ilość maszyn przyznana po predykcji"), cex=.8, col = c("black", "red"), pch=c(1,2))
+    legend("bottom", legend = c("Ilość maszyn po rozłożeniu pozostałej kwoty", "Ilość maszyn przyznana po predykcji"), cex=.8, col = c("black", "red"), pch=c(1,2))
     dev.off()
     
     test.prediction.values[i] <- value.prediction[1]
@@ -170,7 +170,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   par(mfrow=(c(1,1)))
   plot(test.prediction.values, xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l")
   lines(data$testWeek[,2], col = "red",)
-  legend("topleft", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
+  legend("bottom", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
   dev.off()
   
   machinesPerHours = paste(pathToSave, "machines.png", sep = "")
@@ -179,7 +179,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   plot(test.prediction.machines, xlab = "Godzina w tygodniu", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
   lines(test.prediction.machines.before, col = "red")
   lines(data$testWeek[,3], col = "blue")
-  legend("topleft", legend = c("Ilość maszyn przyznana po predykcji", "Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn dla okresu testowego"), cex=.8, col = c("black", "red", "blue"), pch=c(1,2))
+  legend("bottom", legend = c("Ilość maszyn przyznana po predykcji", "Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn dla okresu testowego"), cex=.8, col = c("black", "red", "blue"), pch=c(1,2))
   dev.off()
   
   costs = paste(pathToSave, "costPerHour.png", sep = "")
