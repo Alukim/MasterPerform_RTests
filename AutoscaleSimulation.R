@@ -169,7 +169,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   png(filename = requeusts, width = 1200, height = 500)
   par(mfrow=(c(1,1)))
   plot(test.prediction.values, xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l")
-  lines(data$test[,1], col = "red",)
+  lines(data$testWeek[,2], col = "red",)
   legend("topleft", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
   dev.off()
   
@@ -178,7 +178,8 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   ylimMax <- max(test.prediction.machines) + 2
   plot(test.prediction.machines, xlab = "Godzina w tygodniu", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
   lines(test.prediction.machines.before, col = "red")
-  legend("topleft", legend = c("Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn przyznana po predykcji"), cex=.8, col = c("black", "red"), pch=c(1,2))
+  lines(data$testWeek[,3], col = "blue")
+  legend("topleft", legend = c("Ilość maszyn przyznana po predykcji", "Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn dla okresu testowego"), cex=.8, col = c("black", "red", "blue"), pch=c(1,2))
   dev.off()
   
   costs = paste(pathToSave, "costPerHour.png", sep = "")
