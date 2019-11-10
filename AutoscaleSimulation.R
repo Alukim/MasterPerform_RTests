@@ -2,7 +2,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   library(forecast)
   
   data = loadData(path)
-
+  
   month.ts <- ts(data$month, frequency=24*7)
   month.machine.ts <- ts(data$machine, frequency=24*7)
   
@@ -169,7 +169,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   png(filename = requeusts, width = 1200, height = 500)
   par(mfrow=(c(1,1)))
   plot(test.prediction.values, xlab = "Godzina", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l")
-  lines(data$testWeek[,2], col = "red",)
+  lines(data$test[,2], col = "red",)
   legend("bottom", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
   dev.off()
   
@@ -178,7 +178,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   ylimMax <- max(test.prediction.machines) + 2
   plot(test.prediction.machines, xlab = "Godzina", ylab = "Ilość maszyn", main = "Ilość maszyn na godzinę", type = "l", ylim = c(0, ylimMax))
   lines(test.prediction.machines.before, col = "red")
-  lines(data$testWeek[,3], col = "blue")
+  lines(data$test[,3], col = "blue")
   legend("bottom", legend = c("Ilość maszyn przyznana po predykcji", "Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn dla okresu testowego"), cex=.8, col = c("black", "red", "blue"), pch=c(1,2))
   dev.off()
   
