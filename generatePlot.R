@@ -44,11 +44,11 @@ generatePlot <- function(path, money1, money2, money3, money4) {
   prediction3Add = read.csv(prediction3PathAddMachines, header = TRUE, sep = ",")
   prediction4Add = read.csv(prediction4PathAddMachines, header = TRUE, sep = ",")
   
-  # par(mfrow=c(1,1))
-  # ylimMax <- max(prediction1[,2]) + 2
-  # plot(prediction1[,2], xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l", ylim = c(0, ylimMax))
-  # lines(testWeekValues, col = "red")
-  # legend("bottom", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
+  par(mfrow=c(1,1))
+  ylimMax <- max(prediction1[,2]) + 2
+  plot(prediction1[,2], xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l", ylim = c(0, ylimMax))
+  lines(testWeekValues, col = "red")
+  legend("topleft", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
 
   par(mfrow=c(1,1))
   ylimMax <- max(prediction1Add[,2]) + 2
@@ -57,11 +57,11 @@ generatePlot <- function(path, money1, money2, money3, money4) {
   lines(testWeekMachines, col = "blue")
   legend("topleft", legend = c("Ilość maszyn przyznana po predykcji", "Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn dla okresu testowego"), cex=.8, col = c("black", "red", "blue"), pch=c(1,2))
   
-  # par(mfrow=c(1,1))
-  # ylimMax <- max(prediction2[,2]) + 2
-  # plot(prediction2[,2], xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l", ylim = c(0, ylimMax))
-  # lines(testWeekValues, col = "red")
-  # legend("bottom", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
+  par(mfrow=c(1,1))
+  ylimMax <- max(prediction2[,2]) + 2
+  plot(prediction2[,2], xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l", ylim = c(0, ylimMax))
+  lines(testWeekValues, col = "red")
+  legend("topleft", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
 
   par(mfrow=c(1,1))
   ylimMax <- max(prediction2Add[,2]) + 2
@@ -70,11 +70,11 @@ generatePlot <- function(path, money1, money2, money3, money4) {
   lines(testWeekMachines, col = "blue")
   legend("topleft", legend = c("Ilość maszyn przyznana po predykcji", "Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn dla okresu testowego"), cex=.8, col = c("black", "red", "blue"), pch=c(1,2))
   
-  # par(mfrow=c(1,1))
-  # ylimMax <- max(prediction3[,2]) + 2
-  # plot(prediction3[,2], xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l", ylim = c(0, ylimMax))
-  # lines(testWeekValues, col = "red")
-  # legend("bottom", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
+  par(mfrow=c(1,1))
+  ylimMax <- max(prediction3[,2]) + 2
+  plot(prediction3[,2], xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l", ylim = c(0, ylimMax))
+  lines(testWeekValues, col = "red")
+  legend("topleft", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
 
   par(mfrow=c(1,1))
   ylimMax <- max(prediction3Add[,2]) + 2
@@ -83,11 +83,11 @@ generatePlot <- function(path, money1, money2, money3, money4) {
   lines(testWeekMachines, col = "blue")
   legend("topleft", legend = c("Ilość maszyn przyznana po predykcji", "Ilość maszyn na godzinę po rozłożeniu pozostałej kwoty", "Ilość maszyn dla okresu testowego"), cex=.8, col = c("black", "red", "blue"), pch=c(1,2))
   
-  # par(mfrow=c(1,1))
-  # ylimMax <- max(prediction4[,2]) + 2
-  # plot(prediction4[,2], xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l", ylim = c(0, ylimMax))
-  # lines(testWeekValues, col = "red")
-  # legend("bottom", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
+  par(mfrow=c(1,1))
+  ylimMax <- max(prediction4[,2]) + 2
+  plot(prediction4[,2], xlab = "Godzina w tygodniu", ylab = "Ilość zapytań", main = "Ilość zapytań na godzinę", type = "l", ylim = c(0, ylimMax))
+  lines(testWeekValues, col = "red")
+  legend("topleft", legend = c("Ilość zapytań na godzinę z predykcji", "Testowa wartość ilości zapytań na godzinę"), cex=.8, col = c("black", "red"), pch=c(1,2))
   
   par(mfrow=c(1,1))
   ylimMax <- max(prediction4Add[,2]) + 2
