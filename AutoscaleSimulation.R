@@ -184,7 +184,7 @@ autoscaleSimulation <- function(path, moneyToSpendForWeek, moneyForOneMachineFor
   
   costs = paste(pathToSave, "costPerHour.png", sep = "")
   png(filename = costs, width = 1200, height = 500)
-  plot(test.prediction.costForHour, xlab = "Godzina", ylab = "Koszt", main = "Koszt maszyny na godzinę", type = "l")
+  plot(test.prediction.costForHour, xlab = "Godzina", ylab = "Koszt", main = "Koszt maszyn na godzinę", type = "l")
   dev.off()
   
   restCost = paste(pathToSave, "restConstPerHour.png", sep = "")
